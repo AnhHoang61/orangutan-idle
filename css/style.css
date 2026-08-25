@@ -1,0 +1,125 @@
+:root {
+  --bg: #1b1726;
+  --card: #2a2337;
+  --edge: #3d3350;
+  --ink: #f0ebe2;
+  --dim: #a99fbb;
+  --accent: #ffb85c;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: radial-gradient(circle at 50% 0%, #2b2340, var(--bg) 70%);
+  color: var(--ink);
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+}
+
+/* ---------- Thanh trạng thái ---------- */
+#bar {
+  width: min(1120px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--card);
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+}
+
+.name { display: flex; flex-direction: column; line-height: 1.25; }
+#cat-name { font-size: 17px; font-weight: 600; }
+#mood { font-size: 12px; color: var(--dim); }
+
+.stats { display: flex; gap: 14px; }
+.stat { display: flex; align-items: center; gap: 6px; }
+.lbl { font-size: 11px; color: var(--dim); width: 24px; }
+
+.bar {
+  width: 72px; height: 9px;
+  background: #191426;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.fill { height: 100%; width: 60%; transition: width .35s ease; border-radius: 6px; }
+.fill.hunger { background: linear-gradient(90deg, #ff9a5c, #ffcf6b); }
+.fill.energy { background: linear-gradient(90deg, #6cc7ff, #8ee6c8); }
+.fill.happy  { background: linear-gradient(90deg, #ff86b8, #ffb3d4); }
+
+/* ---------- Sân khấu ---------- */
+#stage {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+  line-height: 0;
+}
+
+#scene {
+  display: block;
+  /* giữ đúng tỉ lệ 2:1 và không cao quá màn hình */
+  width: min(1120px, 98vw, (100vh - 190px) * 2);
+  height: auto;
+  aspect-ratio: 2 / 1;
+  cursor: pointer;
+  outline: none;
+  touch-action: none;
+}
+#scene:focus-visible { box-shadow: inset 0 0 0 3px var(--accent); }
+#scene.laser { cursor: crosshair; }
+
+/* ---------- Nút hành động ---------- */
+#actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#actions button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 68px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 19px;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+#actions button span { font-size: 11px; color: var(--dim); }
+#actions button:hover { transform: translateY(-2px); background: #332a44; }
+#actions button:active { transform: translateY(0); }
+#actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#actions button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: #3a2f1d;
+}
+#actions button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+#hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: #7e7593;
+  text-align: center;
+}

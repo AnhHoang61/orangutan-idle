@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đười ươi rảnh rỗi</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="bar">
+    <div class="name">
+      <span id="cat-name">Ổi</span>
+      <span id="mood" role="status" aria-live="polite">đang thư giãn</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <span class="lbl">Đói</span>
+        <div class="bar"><div class="fill hunger" id="f-hunger"></div></div>
+      </div>
+      <div class="stat">
+        <span class="lbl">Sức</span>
+        <div class="bar"><div class="fill energy" id="f-energy"></div></div>
+      </div>
+      <div class="stat">
+        <span class="lbl">Vui</span>
+        <div class="bar"><div class="fill happy" id="f-happy"></div></div>
+      </div>
+    </div>
+  </header>
+
+  <div id="stage">
+    <canvas id="scene" width="1120" height="560"
+            aria-label="Con đười ươi trong phòng" role="img" tabindex="0"></canvas>
+  </div>
+
+  <nav id="actions" aria-label="Hành động">
+    <button type="button" data-act="pet"   title="Vuốt đười ươi (P)">🤚<span>Vuốt</span></button>
+    <button type="button" data-act="feed"  title="Cho ăn (F)">🍌<span>Cho ăn</span></button>
+    <button type="button" data-act="laser" title="Đèn laser (L)" aria-pressed="false">🔴<span>Laser</span></button>
+    <button type="button" data-act="ball"  title="Ném bóng (B)">🧶<span>Bóng</span></button>
+    <button type="button" data-act="light" title="Tắt/bật đèn (Space)" aria-pressed="true">💡<span>Đèn</span></button>
+    <button type="button" data-act="scene" title="Đổi bối cảnh (C)">🖼️<span id="scene-label">Phòng ngủ</span></button>
+  </nav>
+
+  <p id="hint">
+    Click vào đười ươi để vuốt · Laser bật rồi di chuột trong phòng · Nó tự ngủ khi hết sức
+  </p>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/items.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/cat.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
