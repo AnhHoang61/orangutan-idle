@@ -1,6 +1,8 @@
-/* Cập nhật thanh chỉ số và nút hành động. */
+/* Cập nhật thanh chỉ số và nút hành động.
+   Chỉ số hiển thị theo con đang được chọn (UI.selected). */
 const UI = {
   els: {},
+  selected: null,
   _moodTimer: 0,
 
   init() {
@@ -9,16 +11,34 @@ const UI = {
       energy: document.getElementById('f-energy'),
       happy: document.getElementById('f-happy'),
       mood: document.getElementById('mood'),
+      name: document.getElementById('cat-name'),
       laser: document.querySelector('[data-act="laser"]'),
       light: document.querySelector('[data-act="light"]'),
       ball: document.querySelector('[data-act="ball"]'),
+      swapLabel: document.getElementById('swap-label'),
     };
+    this.select(Pets.orang);
+  },
+
+  /* Chọn con để xem chỉ số và nhận lệnh vuốt/gọi */
+  select(a) {
+    if (!a || this.selected === a) return;
+    this.selected = a;
+    if (this.els.name) this.els.name.textContent = `${a.sp.petName} · ${a.sp.label}`;
+    if (this.els.swapLabel) {
+      const other = a === Pets.orang ? Pets.chimp : Pets.orang;
+      this.els.swapLabel.textContent = `Sang ${other.sp.petName}`;
+    }
+    this._moodTimer = 0;   // cập nhật mood ngay
   },
 
   refresh(dt) {
-    this.els.hunger.style.width = `${Cat.hunger}%`;
-    this.els.energy.style.width = `${Cat.energy}%`;
-    this.els.happy.style.width = `${Cat.happy}%`;
+    const a = this.selected;
+    if (!a) return;
+
+    this.els.hunger.style.width = `${a.hunger}%`;
+    this.els.energy.style.width = `${a.energy}%`;
+    this.els.happy.style.width = `${a.happy}%`;
 
     this.els.laser.setAttribute('aria-pressed', String(Items.laser.on));
     this.els.light.setAttribute('aria-pressed', String(Render.lightsOn));
@@ -28,7 +48,7 @@ const UI = {
     this._moodTimer -= dt;
     if (this._moodTimer <= 0) {
       this._moodTimer = 2600;
-      this.els.mood.textContent = Cat.moodText();
+      this.els.mood.textContent = a.moodText();
     }
   },
 

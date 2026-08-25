@@ -45,6 +45,57 @@ const PAL = {
   night: 'rgba(14, 12, 30, 0.62)',
 };
 
+/* Hai loài sống chung phòng. Mỗi con có palette, tốc độ, tỉ lệ riêng. */
+const SPECIES = {
+  orang: {
+    key: 'orang',
+    label: 'Đười ươi',
+    petName: 'Ổi',
+    scale: 1.3,
+    speed: 1.25,
+    chaseSpeed: 2.9,
+    startX: 430,
+    hasLongArms: true,
+    pal: {
+      furA: '#d9722e', furB: '#b0561d', furLight: '#f0a057', belly: '#e8945a',
+      ear: '#c98a63', face: '#d9a077', snout: '#e0b18d',
+      nostril: '#7a4a33', hoof: '#8a5a3a', eye: '#33221a',
+    },
+  },
+  chimp: {
+    key: 'chimp',
+    label: 'Tinh tinh',
+    petName: 'Bơ',
+    scale: 1.04,          // nhỏ hơn đười ươi
+    speed: 1.75,          // nhanh nhẹn hơn
+    chaseSpeed: 3.6,
+    startX: 720,
+    hasLongArms: false,   // tay ngắn hơn, chống đất kiểu knuckle-walk
+    pal: {
+      furA: '#463a32', furB: '#2e251f', furLight: '#6b574b', belly: '#7b6555',
+      ear: '#e3b89c', face: '#eac6aa', snout: '#f2d5bd',
+      nostril: '#8a5f45', hoof: '#2a201a', eye: '#2b1d14',
+    },
+  },
+};
+
+/* Câu thoại riêng cho tinh tinh: lém lỉnh, hiếu động hơn */
+const CHIMP_MOODS = {
+  idle:   ['ngồi nhìn quanh', 'gãi đầu nghĩ ngợi', 'nhấp nhổm không yên'],
+  walk:   ['chạy lăng quăng', 'đi tuần một vòng', 'tìm gì đó để chơi'],
+  sit:    ['ngồi vắt vẻo', 'ngồi ngắm bạn'],
+  groom:  ['bắt chấy cho mình', 'chải lông'],
+  sleep:  ['ngủ ngon lành', 'khò khò...'],
+  chase:  ['ĐUỔI ĐỐM ĐỎ!', 'nhảy chồm chồm theo đốm đỏ'],
+  play:   ['vờn quả bóng', 'chơi quên trời đất'],
+  eat:    ['ăn ngấu nghiến', 'nhai nhóp nhép'],
+  pet:    ['khì khì thích lắm...', 'nghiêng đầu cho vuốt'],
+  hungry: ['kêu chí chí đòi ăn', 'đói lắm rồi'],
+  tired:  ['ngáp dài', 'lim dim mắt'],
+  follow: ['lon ton theo bạn', 'chạy tới tìm bạn'],
+  greet:  ['chào bạn thân', 'ôm bạn một cái'],
+};
+
 /* Câu thoại theo trạng thái, hiện ở dòng mood */
 const MOODS = {
   idle:   ['đang thư giãn', 'ngó quanh phòng', 'vắt tay suy tư'],

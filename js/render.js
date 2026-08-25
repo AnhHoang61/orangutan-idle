@@ -8,9 +8,9 @@ const Render = {
     Scenes.draw(ctx);
     Items.drawBowl(ctx);
 
-    // sort theo y để mèo/bóng che nhau đúng
+    // sort theo y: con/bóng đứng thấp hơn thì vẽ sau (che con phía trên)
     const layers = [
-      { y: Cat.y, fn: () => this._cat(ctx) },
+      ...Pets.list.map((a) => ({ y: a.y, fn: () => this._pet(ctx, a) })),
       { y: Items.ball.active ? Items.ball.y : -1, fn: () => Items.drawBall(ctx) },
     ].filter((l) => l.y >= 0).sort((a, b) => a.y - b.y);
     for (const l of layers) l.fn();
@@ -116,25 +116,27 @@ const Render = {
   },
 
   /* ---------- Con mèo ---------- */
-  _cat(ctx) {
-    const s = Cat.state;
-    if (s === 'sleep') return this._catSleeping(ctx);
+  /* Vẽ một con vật. `a` là thực thể từ Pets.list. */
+  _pet(ctx, a) {
+    const s = a.state;
+    if (s === 'sleep') return this._petSleeping(ctx, a);
 
-    const x = Cat.x;
-    const crouch = Cat.crouch;
-    const sitting = s === 'sit' || s === 'groom' || s === 'pet' || s === 'eat';
-    const breathe = Math.sin(Cat.bob) * (sitting ? 1.1 : 0.6);
-    const stepBob = (s === 'walk' || s === 'chase' || s === 'play') && Cat.vx !== 0
-      ? Math.abs(Math.sin(Cat.bob * 3)) * 1.8 : 0;
-    const y = Cat.y - stepBob + crouch * 6;
-    const f = Cat.facing;
+    const P = a.pal;
+    const moving = (s === 'walk' || s === 'chase' || s === 'play' || s === 'follow') && a.vx !== 0;
+    const x = a.x;
+    const crouch = a.crouch;
+    const sitting = s === 'sit' || s === 'groom' || s === 'pet' || s === 'eat' || s === 'greet';
+    const breathe = Math.sin(a.bob) * (sitting ? 1.1 : 0.6);
+    const stepBob = moving ? Math.abs(Math.sin(a.bob * 3)) * 1.8 : 0;
+    const y = a.y - stepBob + crouch * 6;
+    const f = a.facing;
 
-    const S = CFG.CAT_SCALE;
+    const S = a.scale;
 
     // bóng
     ctx.fillStyle = 'rgba(0,0,0,.24)';
     ctx.beginPath();
-    ctx.ellipse(x, Cat.y + 10, 30 * S, 8 * S, 0, 0, Math.PI * 2);
+    ctx.ellipse(x, a.y + 10, 30 * S, 8 * S, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.save();
@@ -144,11 +146,11 @@ const Render = {
     // đười ươi không có đuôi
     // chân sau + trước
     const bodyH = sitting ? 26 : 30 - crouch * 5;
-    const legSwing = (s === 'walk' || s === 'chase' || s === 'play') && Cat.vx !== 0
-      ? Math.sin(Cat.bob * 3) * 3 : 0;
+    const legSwing = (s === 'walk' || s === 'chase' || s === 'play') && a.vx !== 0
+      ? Math.sin(a.bob * 3) * 3 : 0;
 
     // chân sau: ngắn, hơi khuỳnh
-    ctx.fillStyle = PAL.furB;
+    ctx.fillStyle = P.furB;
     if (sitting) {
       ctx.fillRect(-13, -8, 9, 10);
       ctx.fillRect(4, -8, 9, 10);
@@ -157,7 +159,7 @@ const Render = {
       ctx.fillRect(7 - legSwing, -11, 9, 13);
     }
     // bàn chân sẫm
-    ctx.fillStyle = PAL.hoof;
+    ctx.fillStyle = P.hoof;
     if (sitting) {
       ctx.fillRect(-14, -1, 11, 4);
       ctx.fillRect(3, -1, 11, 4);
@@ -167,7 +169,7 @@ const Render = {
     }
 
     // thân: vai rộng, thóp lại phía dưới
-    ctx.fillStyle = PAL.furA;
+    ctx.fillStyle = P.furA;
     ctx.beginPath();
     if (sitting) {
       ctx.ellipse(0, -20 + breathe, 19, 21, 0, 0, Math.PI * 2);
@@ -177,28 +179,30 @@ const Render = {
     ctx.fill();
 
     // ngực sáng
-    ctx.fillStyle = PAL.belly;
+    ctx.fillStyle = P.belly;
     ctx.beginPath();
     ctx.ellipse(sitting ? 2 : 3, -16 + breathe, sitting ? 11 : 13, 10, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // tay dài đặc trưng: buông tới sát sàn, đưa theo nhịp đi
-    const armSwing = (s === 'walk' || s === 'chase' || s === 'play') && Cat.vx !== 0
-      ? Math.sin(Cat.bob * 3) * 5 : Math.sin(Cat.bob) * 1.2;
-    ctx.strokeStyle = PAL.furB;
-    ctx.lineWidth = 9;
+    // Tay: đười ươi buông dài sát sàn; tinh tinh ngắn hơn, chống đất kiểu knuckle-walk
+    const long = a.sp.hasLongArms;
+    const armSwing = moving ? Math.sin(a.bob * 3) * (long ? 5 : 4) : Math.sin(a.bob) * 1.2;
+    const reach = long ? 1.15 : 0.95;    // tay tinh tinh với ngắn hơn
+    const drop = long ? -2 : -7;         // và không chạm hẳn xuống sàn
+    ctx.strokeStyle = P.furB;
+    ctx.lineWidth = long ? 9 : 8;
     ctx.lineCap = 'round';
     for (const [sx, sw] of [[-19, -armSwing], [19, armSwing]]) {
       ctx.beginPath();
       ctx.moveTo(sx * 0.85, -31 + breathe);
-      ctx.quadraticCurveTo(sx * 1.35 + sw, -18, sx * 1.15 + sw * 1.6, -2);
+      ctx.quadraticCurveTo(sx * (long ? 1.35 : 1.15) + sw, -18, sx * reach + sw * 1.6, drop);
       ctx.stroke();
     }
     // bàn tay
-    ctx.fillStyle = PAL.hoof;
+    ctx.fillStyle = P.hoof;
     for (const [sx, sw] of [[-19, -armSwing], [19, armSwing]]) {
       ctx.beginPath();
-      ctx.ellipse(sx * 1.15 + sw * 1.6, 0, 5, 4.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(sx * reach + sw * 1.6, drop + 2, 5, 4.5, 0, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.lineCap = 'butt';
@@ -206,22 +210,23 @@ const Render = {
     // đầu
     const headY = (sitting ? -40 : -32) + breathe;
     const headX = sitting ? 2 : 17;
-    this._head(ctx, headX, headY, s);
+    this._head(ctx, headX, headY, s, a);
 
     ctx.restore();
   },
 
-  _head(ctx, hx, hy, state) {
+  _head(ctx, hx, hy, state, a) {
+    const P = a.pal;
     ctx.save();
     ctx.translate(hx, hy);
 
     // nghiêng đầu khi liếm chân
-    if (state === 'groom') ctx.rotate(0.45 + Math.sin(Cat.bob * 4) * 0.12);
-    if (state === 'eat') ctx.rotate(0.3 + Math.sin(Cat.bob * 6) * 0.1);
+    if (state === 'groom') ctx.rotate(0.45 + Math.sin(a.bob * 4) * 0.12);
+    if (state === 'eat') ctx.rotate(0.3 + Math.sin(a.bob * 6) * 0.1);
 
     // tai nhỏ tròn, sát đầu
-    const tw = Cat.earTwitch > 0 ? 1.6 : 0;
-    ctx.fillStyle = PAL.ear;
+    const tw = a.earTwitch > 0 ? 1.6 : 0;
+    ctx.fillStyle = P.ear;
     for (const ex of [-16, 16]) {
       ctx.beginPath();
       ctx.ellipse(ex + Math.sign(ex) * tw, -1, 4, 5.5, 0, 0, Math.PI * 2);
@@ -229,7 +234,7 @@ const Render = {
     }
 
     // tóc xù trên đỉnh đầu
-    ctx.fillStyle = PAL.furB;
+    ctx.fillStyle = P.furB;
     for (const [hx, hy, hr] of [[-7, -13, 5], [0, -15, 5.5], [7, -13, 5]]) {
       ctx.beginPath();
       ctx.arc(hx, hy, hr, 0, Math.PI * 2);
@@ -237,13 +242,13 @@ const Render = {
     }
 
     // sọ tròn
-    ctx.fillStyle = PAL.furA;
+    ctx.fillStyle = P.furA;
     ctx.beginPath();
     ctx.ellipse(0, 0, 16, 15, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // gờ má hai bên (đặc trưng đười ươi đực)
-    ctx.fillStyle = PAL.furB;
+    ctx.fillStyle = P.furB;
     for (const ex of [-1, 1]) {
       ctx.beginPath();
       ctx.ellipse(ex * 14, 2, 5, 11, ex * 0.12, 0, Math.PI * 2);
@@ -251,15 +256,15 @@ const Render = {
     }
 
     // đĩa mặt phẳng nhạt
-    ctx.fillStyle = PAL.face;
+    ctx.fillStyle = P.face;
     ctx.beginPath();
     ctx.ellipse(0, 1, 11.5, 13, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // mắt
-    const closed = Cat.blink > 0 || state === 'groom' || Cat.purr > 0;
+    const closed = a.blink > 0 || state === 'groom' || a.purr > 0;
     if (closed) {
-      ctx.strokeStyle = PAL.eye;
+      ctx.strokeStyle = P.eye;
       ctx.lineWidth = 2;
       for (const ex of [-6, 6]) {
         ctx.beginPath();
@@ -273,7 +278,7 @@ const Render = {
         ctx.beginPath();
         ctx.ellipse(ex, -2, wide ? 5 : 4.2, wide ? 5.4 : 4.6, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = PAL.eye;
+        ctx.fillStyle = P.eye;
         ctx.beginPath();
         // con ngươi co lại khi rình
         ctx.ellipse(ex + 0.6, -2, wide ? 2.6 : 1.5, wide ? 4.6 : 4.2, 0, 0, Math.PI * 2);
@@ -284,14 +289,14 @@ const Render = {
     }
 
     // vùng miệng nhô: mõm bầu thấp
-    const chew = state === 'eat' ? Math.sin(Cat.bob * 6) * 1.2 : 0;
-    ctx.fillStyle = PAL.snout;
+    const chew = state === 'eat' ? Math.sin(a.bob * 6) * 1.2 : 0;
+    ctx.fillStyle = P.snout;
     ctx.beginPath();
     ctx.ellipse(0, 7 + chew * 0.3, 7.5, 5.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // mũi nhỏ: hai lỗ sát nhau, hướng xuống
-    ctx.fillStyle = PAL.nostril;
+    ctx.fillStyle = P.nostril;
     for (const nx of [-2.2, 2.2]) {
       ctx.beginPath();
       ctx.ellipse(nx, 4, 1.3, 1, 0, 0, Math.PI * 2);
@@ -299,13 +304,13 @@ const Render = {
     }
 
     // miệng: cười nhẹ cho cute
-    ctx.strokeStyle = PAL.nostril;
+    ctx.strokeStyle = P.nostril;
     ctx.lineWidth = 1.4;
     ctx.lineCap = 'round';
     ctx.beginPath();
     if (state === 'eat' && chew > 0) {
       ctx.arc(0, 8, 3.2, 0.05 * Math.PI, 0.95 * Math.PI);
-    } else if (Cat.purr > 0 || state === 'play') {
+    } else if (a.purr > 0 || state === 'play') {
       // cười tươi
       ctx.arc(0, 7, 4, 0.12 * Math.PI, 0.88 * Math.PI);
     } else {
@@ -317,11 +322,12 @@ const Render = {
     ctx.restore();
   },
 
-  _catSleeping(ctx) {
-    const x = Cat.x, y = Cat.y;
-    const breathe = Math.sin(Cat.bob * 0.7) * 1.4;
+  _petSleeping(ctx, a) {
+    const P = a.pal;
+    const x = a.x, y = a.y;
+    const breathe = Math.sin(a.bob * 0.7) * 1.4;
 
-    const S = CFG.CAT_SCALE;
+    const S = a.scale;
 
     ctx.fillStyle = 'rgba(0,0,0,.24)';
     ctx.beginPath();
@@ -330,22 +336,22 @@ const Render = {
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(Cat.facing * S, S);
+    ctx.scale(a.facing * S, S);
 
     // cuộn tròn: thân là ellipse bẹt
-    ctx.fillStyle = PAL.furA;
+    ctx.fillStyle = P.furA;
     ctx.beginPath();
     ctx.ellipse(0, -14 + breathe, 34, 16 + breathe * 0.4, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // chân gập dưới bụng
-    ctx.fillStyle = PAL.furB;
+    ctx.fillStyle = P.furB;
     for (const ox of [-14, 2]) ctx.fillRect(ox, -4, 10, 6);
-    ctx.fillStyle = PAL.hoof;
+    ctx.fillStyle = P.hoof;
     for (const ox of [-14, 2]) ctx.fillRect(ox, 0, 10, 3);
 
     // một tay dài vắt qua người, tay kia buông ra sàn
-    ctx.strokeStyle = PAL.furB;
+    ctx.strokeStyle = P.furB;
     ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -357,7 +363,7 @@ const Render = {
     ctx.quadraticCurveTo(-40, -8, -34, 0);
     ctx.stroke();
     ctx.lineCap = 'butt';
-    ctx.fillStyle = PAL.hoof;
+    ctx.fillStyle = P.hoof;
     ctx.beginPath();
     ctx.ellipse(-26, -13, 4.5, 4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -366,7 +372,7 @@ const Render = {
     ctx.fill();
 
     // vệt lấm trên lưng
-    ctx.fillStyle = PAL.furB;
+    ctx.fillStyle = P.furB;
     ctx.globalAlpha = 0.5;
     for (const ox of [-15, -4, 7]) {
       ctx.beginPath();
@@ -384,7 +390,7 @@ const Render = {
       ctx.save();
       ctx.translate(ex, -7);
       ctx.rotate(sgn * 0.4);
-      ctx.fillStyle = PAL.furB;
+      ctx.fillStyle = P.furB;
       ctx.beginPath();
       ctx.moveTo(sgn * -4, -3);
       ctx.quadraticCurveTo(sgn * 8, -8, sgn * 6, 6);
@@ -393,16 +399,16 @@ const Render = {
       ctx.fill();
       ctx.restore();
     }
-    ctx.fillStyle = PAL.furA;
+    ctx.fillStyle = P.furA;
     ctx.beginPath();
     ctx.ellipse(0, 0, 15, 13, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = PAL.belly;
+    ctx.fillStyle = P.belly;
     ctx.beginPath();
     ctx.ellipse(0, 5, 10, 7, 0, 0, Math.PI * 2);
     ctx.fill();
     // mắt nhắm
-    ctx.strokeStyle = PAL.eye;
+    ctx.strokeStyle = P.eye;
     ctx.lineWidth = 2;
     for (const ex of [-5, 6]) {
       ctx.beginPath();
@@ -410,11 +416,11 @@ const Render = {
       ctx.stroke();
     }
     // mõm
-    ctx.fillStyle = PAL.snout;
+    ctx.fillStyle = P.snout;
     ctx.beginPath();
     ctx.ellipse(0, 7, 8, 6, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = PAL.nostril;
+    ctx.fillStyle = P.nostril;
     for (const nx of [-3, 3]) {
       ctx.beginPath();
       ctx.ellipse(nx, 7, 1.3, 2.1, 0, 0, Math.PI * 2);
@@ -438,18 +444,21 @@ const Render = {
     ctx.restore();
 
     // mắt mèo phát sáng trong tối
-    if (this._dark > 0.35 && Cat.state !== 'sleep' && Cat.blink <= 0) {
-      const S = CFG.CAT_SCALE;
-      const sitting = ['sit', 'groom', 'pet', 'eat'].includes(Cat.state);
-      const hx = Cat.x + Cat.facing * (sitting ? 2 : 17) * S;
-      const hy = Cat.y + (sitting ? -40 : -32) * S;
+    if (this._dark > 0.35) {
       ctx.save();
       ctx.globalAlpha = clamp((this._dark - 0.35) * 1.6, 0, 1);
       ctx.fillStyle = PAL.eyeGlow;
-      for (const ex of [-6, 6]) {
-        ctx.beginPath();
-        ctx.ellipse(hx + ex * Cat.facing * S, hy - 2 * S, 3.4 * S, 4.4 * S, 0, 0, Math.PI * 2);
-        ctx.fill();
+      for (const a of Pets.list) {
+        if (a.state === 'sleep' || a.blink > 0) continue;
+        const S = a.scale;
+        const sitting = ['sit', 'groom', 'pet', 'eat', 'greet'].includes(a.state);
+        const hx = a.x + a.facing * (sitting ? 2 : 17) * S;
+        const hy = a.y + (sitting ? -40 : -32) * S;
+        for (const ex of [-6, 6]) {
+          ctx.beginPath();
+          ctx.ellipse(hx + ex * a.facing * S, hy - 2 * S, 3.4 * S, 4.4 * S, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.restore();
     }
