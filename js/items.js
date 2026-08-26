@@ -1,26 +1,67 @@
-/* Đồ vật trong phòng: bát ăn, cuộn len, đốm laser. */
+/* Đồ vật trong phòng: hai bát ăn, cuộn len, đốm laser. */
 const Items = {
-  bowl: { x: 190, y: 468, food: 0 },      // food 0..3 miếng
+  /* Hai bát đặt xa nhau hai đầu phòng để hai con không phải tranh nhau.
+     food 0..3 miếng mỗi bát. */
+  bowls: [
+    { x: 190, y: 468, food: 0 },
+    { x: 980, y: 468, food: 0 },
+  ],
   ball: { x: 860, y: 470, vx: 0, vy: 0, spin: 0, active: false },
   laser: { on: false, x: 560, y: 470, tx: 560, ty: 470 },
 
   reset() {
-    this.bowl.food = 0;
+    for (const b of this.bowls) b.food = 0;
     this.ball.active = false;
     this.laser.on = false;
   },
 
   /* ---------- Bát ăn ---------- */
   fill() {
-    const was = this.bowl.food;
-    this.bowl.food = 3;
-    return was < 3;
+    let added = false;
+    for (const b of this.bowls) {
+      if (b.food < 3) added = true;
+      b.food = 3;
+    }
+    return added;
   },
-  hasFood() { return this.bowl.food > 0; },
-  takeBite() {
-    if (this.bowl.food <= 0) return false;
-    this.bowl.food -= 1;
-    FX.spawn('crumb', this.bowl.x, this.bowl.y - 12, 3);
+
+  hasFood() { return this.bowls.some((b) => b.food > 0); },
+
+  /* Bát còn đồ ăn ở gần x nhất, trong bán kính r */
+  nearBowl(x, r = 52) {
+    let best = null;
+    let bd = r;
+    for (const b of this.bowls) {
+      const d = Math.abs(b.x - x);
+      if (d < bd) { bd = d; best = b; }
+    }
+    return best;
+  },
+
+  /* Chọn bát cho con `a`: ưu tiên bát còn đồ ăn mà con kia không nhắm tới,
+     trong số đó lấy bát gần nhất. Nhờ vậy hai đứa tự chia nhau hai bát. */
+  claimBowl(a) {
+    const f = a.friend;
+    const taken = (f && f.bowlIdx >= 0 && (f.state === 'walk' || f.state === 'eat'))
+      ? f.bowlIdx : -1;
+
+    const withFood = this.bowls
+      .map((b, i) => ({ b, i }))
+      .filter(({ b }) => b.food > 0);
+    if (!withFood.length) return null;
+
+    const free = withFood.filter(({ i }) => i !== taken);
+    const pool = free.length ? free : withFood;
+    pool.sort((p, q) => Math.abs(p.b.x - a.x) - Math.abs(q.b.x - a.x));
+
+    a.bowlIdx = pool[0].i;
+    return pool[0].b;
+  },
+
+  takeBite(bowl) {
+    if (!bowl || bowl.food <= 0) return false;
+    bowl.food -= 1;
+    FX.spawn('crumb', bowl.x, bowl.y - 12, 3);
     return true;
   },
 
@@ -84,8 +125,17 @@ const Items = {
   },
 
   /* ---------- Vẽ ---------- */
-  drawBowl(ctx) {
-    const { x, y, food } = this.bowl;
+  drawBowls(ctx) {
+    for (let i = 0; i < this.bowls.length; i++) this._bowl(ctx, this.bowls[i], i);
+  },
+
+  /* Hai bát khác màu nhẹ để phân biệt được của con nào hay ăn */
+  _bowl(ctx, bowl, idx) {
+    const { x, y, food } = bowl;
+    const cool = idx === 0;
+    const body = cool ? PAL.bowl : PAL.bowlWarm;
+    const dark = cool ? PAL.bowlDark : PAL.bowlWarmDark;
+
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath();
     ctx.ellipse(x, y + 8, 26, 6, 0, 0, Math.PI * 2);
@@ -99,7 +149,7 @@ const Items = {
       ctx.fill();
     }
     // thân bát
-    ctx.fillStyle = PAL.bowl;
+    ctx.fillStyle = body;
     ctx.beginPath();
     ctx.moveTo(x - 24, y - 4);
     ctx.lineTo(x + 24, y - 4);
@@ -107,7 +157,7 @@ const Items = {
     ctx.lineTo(x - 16, y + 10);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = PAL.bowlDark;
+    ctx.fillStyle = dark;
     ctx.beginPath();
     ctx.ellipse(x, y - 4, 24, 5, 0, 0, Math.PI * 2);
     ctx.fill();

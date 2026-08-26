@@ -54,21 +54,11 @@ const Scenes = {
     }
   },
 
-  _rug(ctx, fill, stroke) {
-    ctx.fillStyle = fill;
-    ctx.beginPath();
-    ctx.ellipse(560, 478, 300, 62, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.ellipse(560, 478, 268, 50, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  },
-
-  /* Sao lấp lánh tất định, chỉ hiện khi tối */
+  /* Sao lấp lánh tất định, chỉ hiện khi trời tối thật.
+     Đọc DayNight chứ không đọc Render._dark: bật đèn trong phòng
+     không được làm sao trên trời tắt đi. */
   _stars(ctx, n, maxY) {
-    const d = Render._dark;
+    const d = 1 - DayNight.light;
     if (d < 0.15) return;
     ctx.save();
     ctx.globalAlpha = clamp((d - 0.15) * 1.4, 0, 1);
@@ -100,9 +90,9 @@ const Scenes = {
     }
   },
 
-  /* Mặt trăng hoặc mặt trời tuỳ giờ */
+  /* Mặt trăng hoặc mặt trời tuỳ giờ trong ngày */
   _celestial(ctx, x, y, r) {
-    const d = Render._dark;
+    const d = 1 - DayNight.light;
     if (d > 0.4) {
       ctx.fillStyle = '#f5e9c0';
       ctx.beginPath();
@@ -141,12 +131,10 @@ Scenes._list = [
       ctx.fillRect(0, CFG.FLOOR_Y - 16, CFG.W, 16);
       Render._window(ctx, 400, 66, 168, 122);
       Render._window(ctx, 640, 66, 168, 122);
-      Render._shelf(ctx, 96, 120);
+      // kệ phải + cây trái là đồ mua được (Decor), scene chỉ giữ phần cố định
       Render._shelf(ctx, 900, 168);
-      Render._plant(ctx, 1030, CFG.FLOOR_Y - 4);
       Render._plant(ctx, 62, CFG.FLOOR_Y - 4);
       Scenes._floorBoards(ctx, PAL.floor, PAL.floorDark);
-      Scenes._rug(ctx, PAL.rug, PAL.rugEdge);
     },
   },
 

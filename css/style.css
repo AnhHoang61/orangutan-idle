@@ -1,10 +1,15 @@
 :root {
   --bg: #1b1726;
-  --card: #2a2337;
-  --edge: #3d3350;
-  --ink: #f0ebe2;
-  --dim: #a99fbb;
+  --card: rgba(46, 38, 62, .58);       /* trong mờ, có blur phía sau */
+  --card-solid: #2a2337;
+  --edge: rgba(160, 142, 196, .18);    /* viền mảnh, gần như chỉ gợi ý */
+  --edge-lit: rgba(200, 184, 232, .32);
+  --ink: #f2ede5;
+  --dim: #ada3bf;
   --accent: #ffb85c;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 11px;
 }
 
 * { box-sizing: border-box; }
@@ -33,29 +38,72 @@ html, body {
   width: min(1120px, 100%);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 16px;
+  gap: 14px;
+  padding: 11px 17px;
   background: var(--card);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid var(--edge);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05);
 }
 
-.name { display: flex; flex-direction: column; line-height: 1.25; }
+/* tên pet chiếm phần dư, ba khối còn lại co theo nội dung */
+.name { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+#cat-name, #mood { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #cat-name { font-size: 17px; font-weight: 600; }
 #mood { font-size: 12px; color: var(--dim); }
 
-.stats { display: flex; gap: 14px; }
-.stat { display: flex; align-items: center; gap: 6px; }
-.lbl { font-size: 11px; color: var(--dim); width: 24px; }
+/* Đồng hồ trong game: icon, giờ, tên pha */
+#clock {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, .2);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+#clock-icon { font-size: 15px; }
+#clock-time { font-size: 13px; font-weight: 600; }
+#clock-phase { font-size: 11px; color: var(--dim); }
+
+/* Thời tiết thật, hiện cạnh giờ sau dấu · */
+#wx-sep { font-size: 11px; color: var(--edge-lit); }
+#wx-sep[hidden] { display: none; }
+#wx-temp { font-size: 13px; font-weight: 600; color: #8fd0f0; }
+#wx-label { font-size: 11px; color: var(--dim); }
+
+/* Nhãn chỉ đọc bằng screen reader, không hiện trên màn hình */
+.sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.stats { display: flex; gap: 15px; }
+.stat { display: flex; align-items: center; gap: 7px; }
+.lbl { font-size: 14px; line-height: 1; }
 
 .bar {
-  width: 72px; height: 9px;
-  background: #191426;
-  border-radius: 6px;
+  width: 74px; height: 8px;
+  background: rgba(0, 0, 0, .34);
+  border-radius: 99px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .3);
 }
-.fill { height: 100%; width: 60%; transition: width .35s ease; border-radius: 6px; }
+.fill {
+  height: 100%; width: 60%;
+  transition: width .35s ease;
+  border-radius: 99px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, .16);
+}
 .fill.hunger { background: linear-gradient(90deg, #ff9a5c, #ffcf6b); }
 .fill.energy { background: linear-gradient(90deg, #6cc7ff, #8ee6c8); }
 .fill.happy  { background: linear-gradient(90deg, #ff86b8, #ffb3d4); }
@@ -63,10 +111,12 @@ html, body {
 /* ---------- Sân khấu ---------- */
 #stage {
   position: relative;
-  border-radius: 18px;
+  border-radius: 22px;
   overflow: hidden;
-  border: 1px solid var(--edge);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+  border: 1px solid var(--edge-lit);
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, .5),
+    inset 0 1px 0 rgba(255, 255, 255, .07);
   line-height: 0;
 }
 
@@ -86,7 +136,7 @@ html, body {
 /* ---------- Nút hành động ---------- */
 #actions {
   display: flex;
-  gap: 8px;
+  gap: 9px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -95,31 +145,170 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  min-width: 68px;
-  padding: 8px 12px;
+  gap: 4px;
+  min-width: 70px;
+  padding: 9px 13px;
   font: inherit;
-  font-size: 19px;
+  font-size: 20px;
   color: var(--ink);
   background: var(--card);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
   border: 1px solid var(--edge);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .05);
+  transition: transform .14s ease, background .14s ease,
+              border-color .14s ease, box-shadow .14s ease;
 }
 #actions button span { font-size: 11px; color: var(--dim); }
-#actions button:hover { transform: translateY(-2px); background: #332a44; }
+#actions button:hover {
+  transform: translateY(-2px);
+  border-color: var(--edge-lit);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
 #actions button:active { transform: translateY(0); }
 #actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-#actions button[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: #3a2f1d;
+#actions button[aria-pressed="true"],
+#actions button[aria-expanded="true"] {
+  border-color: rgba(255, 184, 92, .5);
+  background: rgba(255, 184, 92, .14);
 }
-#actions button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+#actions button[aria-pressed="true"] span,
+#actions button[aria-expanded="true"] span { color: var(--accent); }
+#actions button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
 #hint {
   margin: 0;
   font-size: 11.5px;
+  color: #7e7593;
+  text-align: center;
+}
+
+/* ---------- Túi xu ---------- */
+#purse {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 184, 92, .1);
+  border: 1px solid rgba(255, 184, 92, .3);
+  border-radius: var(--r-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+#purse .coin { font-size: 14px; }
+#coin-count { font-size: 14px; font-weight: 700; color: var(--accent); }
+#coin-rate { font-size: 10.5px; color: var(--dim); }
+
+/* ---------- Cửa hàng ---------- */
+#shop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: min(520px, 94vw);
+  max-height: min(78vh, 620px);
+  margin: auto;
+  padding: 17px 19px 15px;
+  background: rgba(38, 31, 52, .82);
+  backdrop-filter: blur(26px) saturate(1.25);
+  -webkit-backdrop-filter: blur(26px) saturate(1.25);
+  border: 1px solid var(--edge-lit);
+  border-radius: 22px;
+  box-shadow:
+    0 28px 64px rgba(0, 0, 0, .58),
+    inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+#shop[hidden] { display: none; }
+
+#shop header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#shop h2 { margin: 0; font-size: 16px; font-weight: 600; flex: 1; }
+#shop-purse {
+  font-size: 14px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+#shop-close {
+  width: 28px; height: 28px;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  cursor: pointer;
+}
+#shop-close:hover { color: var(--ink); background: #332a44; }
+
+#shop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.shop-tier { display: flex; flex-direction: column; gap: 7px; }
+.shop-tier > h3 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.shop-tier.locked { opacity: .5; }
+
+.shop-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  transition: border-color .14s ease, background .14s ease;
+}
+.shop-row:hover { border-color: var(--edge-lit); background: rgba(255, 255, 255, .05); }
+.shop-row .ico { font-size: 21px; width: 26px; text-align: center; }
+.shop-row .txt { flex: 1; display: flex; flex-direction: column; line-height: 1.3; }
+.shop-row .nm { font-size: 13.5px; }
+.shop-row .note { font-size: 11px; color: var(--dim); }
+.shop-row .price {
+  font-size: 12.5px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.shop-row button {
+  min-width: 62px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: #241d10;
+  background: var(--accent);
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.shop-row button:hover:not(:disabled) { filter: brightness(1.08); }
+.shop-row button:disabled { cursor: not-allowed; opacity: .4; }
+.shop-row button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.shop-row.owned { border-color: rgba(120, 210, 150, .4); }
+.shop-row.owned .have { font-size: 12px; color: #86d9a4; min-width: 62px; text-align: center; }
+
+#shop-note {
+  margin: 0;
+  font-size: 11px;
   color: #7e7593;
   text-align: center;
 }

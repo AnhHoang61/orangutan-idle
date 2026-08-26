@@ -11,21 +11,39 @@
 <div id="app">
   <header id="bar">
     <div class="name">
-      <span id="cat-name">Ổi · Đười ươi</span>
+      <span id="cat-name">Ông Ổi · Đười ươi già</span>
       <span id="mood" role="status" aria-live="polite">đang thư giãn</span>
     </div>
+
+    <div id="clock" title="Giờ và thời tiết thật">
+      <span id="clock-icon">☀️</span>
+      <span id="clock-time">07:00</span>
+      <span id="clock-phase">Buổi sáng</span>
+      <span id="wx-sep" hidden>·</span>
+      <span id="wx-temp"></span>
+      <span id="wx-label"></span>
+    </div>
+
+    <div id="purse" title="Xu tích được">
+      <span class="coin">🪙</span>
+      <span id="coin-count">40</span>
+      <span id="coin-rate">+0/phút</span>
+    </div>
     <div class="stats">
-      <div class="stat">
-        <span class="lbl">Đói</span>
+      <div class="stat" title="Đói">
+        <span class="lbl" aria-hidden="true">🍌</span>
         <div class="bar"><div class="fill hunger" id="f-hunger"></div></div>
+        <span class="sr">Đói</span>
       </div>
-      <div class="stat">
-        <span class="lbl">Sức</span>
+      <div class="stat" title="Sức">
+        <span class="lbl" aria-hidden="true">🔋</span>
         <div class="bar"><div class="fill energy" id="f-energy"></div></div>
+        <span class="sr">Sức</span>
       </div>
-      <div class="stat">
-        <span class="lbl">Vui</span>
+      <div class="stat" title="Vui">
+        <span class="lbl" aria-hidden="true">💛</span>
         <div class="bar"><div class="fill happy" id="f-happy"></div></div>
+        <span class="sr">Vui</span>
       </div>
     </div>
   </header>
@@ -43,19 +61,37 @@
     <button type="button" data-act="ball"  title="Ném bóng (B)">🧶<span>Bóng</span></button>
     <button type="button" data-act="light" title="Tắt/bật đèn (Space)" aria-pressed="true">💡<span>Đèn</span></button>
     <button type="button" data-act="scene" title="Đổi bối cảnh (C)">🖼️<span id="scene-label">Phòng ngủ</span></button>
+    <button type="button" data-act="shop"  title="Cửa hàng (S)" aria-expanded="false">🛒<span>Cửa hàng</span></button>
   </nav>
 
+  <div id="shop" hidden aria-labelledby="shop-title">
+    <header>
+      <h2 id="shop-title">Đồ trang trí</h2>
+      <span id="shop-purse">🪙 <b>0</b></span>
+      <button type="button" id="shop-close" title="Đóng (Esc)" aria-label="Đóng cửa hàng">✕</button>
+    </header>
+    <div id="shop-list"></div>
+    <p id="shop-note">Hai đứa càng vui thì xu càng ra nhanh</p>
+  </div>
+
   <p id="hint">
-    Click vào đười ươi để vuốt · Laser bật rồi di chuột trong phòng · Nó tự ngủ khi hết sức
+    Click vào con nào để vuốt · Click ra sàn để gọi nó tới · Laser bật rồi di chuột trong phòng
+    · Ngày đêm tự chuyển, đèn tự bật · Xu tích theo mức vui, mua đồ ở Cửa hàng (S)
   </p>
 </div>
 
 <script src="js/config.js"></script>
+<script src="js/daynight.js"></script>
+<script src="js/weather.js"></script>
 <script src="js/fx.js"></script>
+<script src="js/decor.js"></script>
+<script src="js/economy.js"></script>
 <script src="js/items.js"></script>
 <script src="js/scenes.js"></script>
 <script src="js/cat.js"></script>
 <script src="js/render.js"></script>
+<script src="js/save.js"></script>
+<script src="js/shop.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>
