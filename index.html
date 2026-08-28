@@ -121,13 +121,15 @@
 </aside>
 </div>
 
-<!-- MQTT qua WebSocket: chat nối trực tiếp tới broker công cộng, không cần
-     server riêng. Nhờ vậy chạy được trên GitHub Pages (chỉ host file tĩnh).
+<!-- MQTT qua WebSocket: chat và co-op nối trực tiếp tới broker công cộng,
+     không cần server riêng. Nhờ vậy chạy được trên GitHub Pages.
 
-     jsdelivr chứ không unpkg: unpkg trả 200 nhưng 0 byte cho file này, nên
-     `mqtt` không tồn tại và Room.connect() lặng lẽ bỏ cuộc. Đã đo: jsdelivr
-     min 329 KB, unpkg min 0 KB. -->
-<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
+     Để ngay trong repo, KHÔNG lấy từ CDN. Lý do: unpkg trả HTTP 200 kèm
+     Content-Length 0 cho file này. Thẻ script coi như nạp xong, Console không
+     báo gì, Network không có dòng đỏ — nhưng `mqtt` không bao giờ tồn tại và
+     chat lặng lẽ không nối. Kiểu lỗi khó tìm nhất. Tự chứa thì hết phụ thuộc
+     vào việc CDN hôm nay có tử tế hay không. -->
+<script src="js/vendor/mqtt.min.js"></script>
 
 <script src="js/config.js"></script>
 <script src="js/room.js"></script>

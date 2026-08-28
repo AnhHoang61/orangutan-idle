@@ -68,7 +68,18 @@ const Net = {
        trừ cái đầu tiên (bài học từ sudoku-coop). */
     await Room.setWill('game', { t: 'bye', id: this.id });
 
-    if (!Room.connect()) return;        // CDN bị chặn -> ở lại solo
+    /* Báo ra thay vì im lặng: lần trước thư viện mqtt nạp thành công nhưng
+       rỗng 0 byte, nên `mqtt` không tồn tại mà chẳng có dấu hiệu gì —
+       chat hiện đủ, bấm được, không nối. Mất nửa buổi mới tìm ra. */
+    if (typeof mqtt === 'undefined') {
+      UI.say('Thiếu thư viện mạng, đang chơi một mình');
+      console.error('[net] mqtt chưa nạp — kiểm tra js/vendor/mqtt.min.js');
+      return;
+    }
+    if (!Room.connect()) {
+      UI.say('Không nối được, đang chơi một mình');
+      return;
+    }
 
     this.hookFX();
 

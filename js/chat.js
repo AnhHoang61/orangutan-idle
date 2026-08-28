@@ -111,6 +111,15 @@ const Chat = {
     this.els.body.hidden = false;
 
     this._loadLog();
+
+    /* Net.start() phải gọi TỪ ĐÂY, không chỉ ở main.js: lúc App.init() chạy
+       thì chưa có khoá (người chơi chưa nhập, mà PBKDF2 cũng mất 0.5-2 giây),
+       nên Net.start() ở đó luôn thoát sớm vì Room.ready còn false.
+
+       Và phải gọi TRƯỚC Room.connect(): Net.start() đặt di chúc MQTT, mà di
+       chúc chỉ có tác dụng nếu đặt trước khi mở kết nối. */
+    await Net.start();
+
     this.connect();
   },
 
