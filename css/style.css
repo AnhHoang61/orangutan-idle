@@ -835,13 +835,22 @@ html, body {
   }
 
   /* Màn hẹp: xếp dọc, chat xuống dưới sân chơi. Cắt 340px khỏi bề ngang
-     768px thì canvas còn quá bé để chơi. */
+     768px thì canvas còn quá bé để chơi.
+
+     min-height/flex phải đặt lại: #shell cao 100vh + #app flex:1 sẽ cho cột
+     game chiếm hết màn hình và đẩy chat ra ngoài viewport — cuộn mới thấy,
+     mà chẳng có dấu hiệu gì là bên dưới còn thứ khác. */
   #shell {
     flex-direction: column;
+    min-height: 0;
+  }
+  #app {
+    flex: none;
   }
   #chat {
     width: auto;
-    height: 60vh;
+    height: 70vh;
+    min-height: 340px;
     border-left: none;
     border-top: 1px solid var(--edge-lit);
     box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.5);

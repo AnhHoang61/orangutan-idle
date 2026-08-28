@@ -122,8 +122,12 @@
 </div>
 
 <!-- MQTT qua WebSocket: chat nối trực tiếp tới broker công cộng, không cần
-     server riêng. Nhờ vậy chạy được trên GitHub Pages (chỉ host file tĩnh). -->
-<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+     server riêng. Nhờ vậy chạy được trên GitHub Pages (chỉ host file tĩnh).
+
+     jsdelivr chứ không unpkg: unpkg trả 200 nhưng 0 byte cho file này, nên
+     `mqtt` không tồn tại và Room.connect() lặng lẽ bỏ cuộc. Đã đo: jsdelivr
+     min 329 KB, unpkg min 0 KB. -->
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
 
 <script src="js/config.js"></script>
 <script src="js/room.js"></script>
