@@ -1,82 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap');
+
 :root {
-  --bg: #1b1726;
-  --card: rgba(46, 38, 62, .58);       /* trong mờ, có blur phía sau */
-  --card-solid: #2a2337;
-  --edge: rgba(160, 142, 196, .18);    /* viền mảnh, gần như chỉ gợi ý */
-  --edge-lit: rgba(200, 184, 232, .32);
-  --ink: #f2ede5;
-  --dim: #ada3bf;
-  --accent: #ffb85c;
-  --r-lg: 18px;
+  --bg: #15111f;
+  --card: rgba(38, 30, 54, 0.65);
+  --card-hover: rgba(48, 38, 68, 0.75);
+  --card-solid: #221b30;
+  --edge: rgba(160, 142, 196, 0.15);
+  --edge-lit: rgba(200, 184, 232, 0.3);
+  --ink: #f7f3eb;
+  --dim: #a49aa3;
+  --accent: #ffae42;
+  --accent-glow: rgba(255, 174, 66, 0.25);
+  --r-lg: 20px;
   --r-md: 14px;
-  --r-sm: 11px;
+  --r-sm: 10px;
+  --font-title: 'Quicksand', sans-serif;
+  --font-body: 'Nunito', sans-serif;
 }
 
 * { box-sizing: border-box; }
 
+/* Không flex/center ở đây nữa: #shell lo layout hai cột. Căn giữa body sẽ
+   thu #shell lại và chặn nó giãn hết chiều cao -> cột chat không dính mép. */
 html, body {
   margin: 0;
-  min-height: 100%;
-  background: radial-gradient(circle at 50% 0%, #2b2340, var(--bg) 70%);
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #2f2549, var(--bg) 80%);
   color: var(--ink);
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
-  overflow: hidden;
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Hàng ngang: cột game + cột chat. Chat là flex item thật nên nó chiếm chỗ
+   trong luồng, không đè lên #app như hồi còn position: fixed. */
+#shell {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
 }
 
 #app {
-  height: 100vh;
+  flex: 1;
+  min-width: 0;              /* cho co lại được, không thì canvas đẩy tràn */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 14px;
+  gap: 16px;
+  padding: 16px;
 }
 
 /* ---------- Thanh trạng thái ---------- */
 #bar {
-  width: min(1120px, 100%);
+  width: 100%;
+  max-width: 1120px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 11px 17px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 22px;
   background: var(--card);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border: 1px solid var(--edge);
   border-radius: var(--r-lg);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
 }
 
-/* tên pet chiếm phần dư, ba khối còn lại co theo nội dung */
-.name { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
-#cat-name, #mood { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#cat-name { font-size: 17px; font-weight: 600; }
-#mood { font-size: 12px; color: var(--dim); }
-
-/* Đồng hồ trong game: icon, giờ, tên pha */
-#clock {
+.name {
   display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, .2);
-  border: 1px solid var(--edge);
-  border-radius: var(--r-sm);
-  font-variant-numeric: tabular-nums;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 180px;
+}
+#cat-name, #mood {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
-#clock-icon { font-size: 15px; }
-#clock-time { font-size: 13px; font-weight: 600; }
-#clock-phase { font-size: 11px; color: var(--dim); }
+#cat-name {
+  font-family: var(--font-title);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+#mood {
+  font-size: 12.5px;
+  color: #c4bcd3;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 3px 10px;
+  border-radius: 99px;
+  align-self: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.1);
+  max-width: 100%;
+  font-style: italic;
+}
+
+/* Đồng hồ trong game: icon, giờ, tên pha */
+#clock, #purse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+#clock:hover, #purse:hover {
+  border-color: var(--edge-lit);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 2px rgba(0,0,0,0.2);
+}
+#clock-icon { font-size: 16px; }
+#clock-time { font-size: 14px; font-weight: 700; }
+#clock-phase { font-size: 11.5px; color: var(--dim); }
 
 /* Thời tiết thật, hiện cạnh giờ sau dấu · */
-#wx-sep { font-size: 11px; color: var(--edge-lit); }
+#wx-sep { font-size: 12px; color: var(--edge-lit); margin: 0 2px; }
 #wx-sep[hidden] { display: none; }
-#wx-temp { font-size: 13px; font-weight: 600; color: #8fd0f0; }
-#wx-label { font-size: 11px; color: var(--dim); }
+#wx-temp { font-size: 14px; font-weight: 700; color: #8fd0f0; }
+#wx-label { font-size: 11.5px; color: var(--dim); }
 
-/* Nhãn chỉ đọc bằng screen reader, không hiện trên màn hình */
+/* Nhãn chỉ đọc bằng screen reader */
 .sr {
   position: absolute;
   width: 1px; height: 1px;
@@ -87,43 +141,71 @@ html, body {
   border: 0;
 }
 
-.stats { display: flex; gap: 15px; }
-.stat { display: flex; align-items: center; gap: 7px; }
-.lbl { font-size: 14px; line-height: 1; }
+.stats { display: flex; gap: 16px; }
+.stat { display: flex; align-items: center; gap: 8px; }
+.lbl {
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
 
 .bar {
-  width: 74px; height: 8px;
-  background: rgba(0, 0, 0, .34);
+  width: 80px;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.4);
   border-radius: 99px;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .3);
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 .fill {
-  height: 100%; width: 60%;
-  transition: width .35s ease;
+  height: 100%;
+  width: 60%;
+  transition: width 0.4s cubic-bezier(0.1, 0.8, 0.25, 1);
   border-radius: 99px;
-  box-shadow: 0 0 8px rgba(255, 255, 255, .16);
+  position: relative;
 }
-.fill.hunger { background: linear-gradient(90deg, #ff9a5c, #ffcf6b); }
-.fill.energy { background: linear-gradient(90deg, #6cc7ff, #8ee6c8); }
-.fill.happy  { background: linear-gradient(90deg, #ff86b8, #ffb3d4); }
+.fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 50%;
+  background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0));
+  border-radius: 99px 99px 0 0;
+}
+.fill.hunger {
+  background: linear-gradient(90deg, #ff7b39, #ffbe43);
+  box-shadow: 0 0 8px rgba(255, 123, 57, 0.4);
+}
+.fill.energy {
+  background: linear-gradient(90deg, #3aa3ff, #62e49c);
+  box-shadow: 0 0 8px rgba(58, 163, 255, 0.4);
+}
+.fill.happy {
+  background: linear-gradient(90deg, #ff57a0, #ffa2c9);
+  box-shadow: 0 0 8px rgba(255, 87, 160, 0.4);
+}
 
 /* ---------- Sân khấu ---------- */
 #stage {
   position: relative;
-  border-radius: 22px;
+  border-radius: 24px;
   overflow: hidden;
   border: 1px solid var(--edge-lit);
   box-shadow:
-    0 22px 48px rgba(0, 0, 0, .5),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
+    0 25px 55px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   line-height: 0;
+  transition: border-color 0.3s ease;
+}
+#stage:hover {
+  border-color: rgba(200, 184, 232, 0.45);
 }
 
+/* 100% chứ không 98vw: cột game giờ hẹp hơn viewport (chat chiếm 340px),
+   dùng vw thì canvas rộng quá cột và tràn sang đè lên chat. */
 #scene {
   display: block;
-  /* giữ đúng tỉ lệ 2:1 và không cao quá màn hình */
-  width: min(1120px, 98vw, (100vh - 190px) * 2);
+  width: min(1120px, 100%, (100vh - 210px) * 2);
   height: auto;
   aspect-ratio: 2 / 1;
   cursor: pointer;
@@ -136,20 +218,24 @@ html, body {
 /* ---------- Nút hành động ---------- */
 #actions {
   display: flex;
-  gap: 9px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  max-width: 1120px;
 }
 
 #actions button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 70px;
-  padding: 9px 13px;
-  font: inherit;
-  font-size: 20px;
+  justify-content: center;
+  gap: 6px;
+  min-width: 82px;
+  padding: 10px 14px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 22px;
   color: var(--ink);
   background: var(--card);
   backdrop-filter: blur(12px) saturate(1.15);
@@ -157,158 +243,657 @@ html, body {
   border: 1px solid var(--edge);
   border-radius: var(--r-md);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .05);
-  transition: transform .14s ease, background .14s ease,
-              border-color .14s ease, box-shadow .14s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
 }
-#actions button span { font-size: 11px; color: var(--dim); }
-#actions button:hover {
-  transform: translateY(-2px);
+#actions button span {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--dim);
+  transition: color 0.2s ease;
+}
+#actions button:hover:not(:disabled) {
+  transform: scale(1.06) translateY(-4px);
   border-color: var(--edge-lit);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .08);
+  background: var(--card-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 10px rgba(200, 184, 232, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-#actions button:active { transform: translateY(0); }
+#actions button:hover:not(:disabled) span {
+  color: var(--ink);
+}
+#actions button:active:not(:disabled) {
+  transform: scale(0.97) translateY(0);
+}
 #actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #actions button[aria-pressed="true"],
 #actions button[aria-expanded="true"] {
-  border-color: rgba(255, 184, 92, .5);
-  background: rgba(255, 184, 92, .14);
+  border-color: rgba(255, 174, 66, 0.55);
+  background: rgba(255, 174, 66, 0.16);
+  box-shadow: 0 4px 16px rgba(255, 174, 66, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 #actions button[aria-pressed="true"] span,
 #actions button[aria-expanded="true"] span { color: var(--accent); }
-#actions button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+#actions button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
 #hint {
-  margin: 0;
-  font-size: 11.5px;
-  color: #7e7593;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8c82a2;
   text-align: center;
+  max-width: 800px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 /* ---------- Túi xu ---------- */
 #purse {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255, 184, 92, .1);
-  border: 1px solid rgba(255, 184, 92, .3);
-  border-radius: var(--r-sm);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  background: rgba(255, 174, 66, 0.06);
+  border: 1px solid rgba(255, 174, 66, 0.2);
 }
-#purse .coin { font-size: 14px; }
-#coin-count { font-size: 14px; font-weight: 700; color: var(--accent); }
-#coin-rate { font-size: 10.5px; color: var(--dim); }
+#purse:hover {
+  border-color: rgba(255, 174, 66, 0.4);
+  box-shadow: 0 0 12px rgba(255, 174, 66, 0.1);
+}
+#purse .coin { font-size: 15px; }
+#coin-count { font-size: 14.5px; font-weight: 800; color: var(--accent); }
+#coin-rate { font-size: 11px; color: var(--dim); }
 
 /* ---------- Cửa hàng ---------- */
 #shop {
   position: fixed;
-  inset: 0;
-  z-index: 20;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 12px;
   width: min(520px, 94vw);
-  max-height: min(78vh, 620px);
-  margin: auto;
-  padding: 17px 19px 15px;
-  background: rgba(38, 31, 52, .82);
-  backdrop-filter: blur(26px) saturate(1.25);
-  -webkit-backdrop-filter: blur(26px) saturate(1.25);
+  max-height: min(82vh, 620px);
+  padding: 20px 22px 18px;
+  background: rgba(28, 22, 39, 0.88);
+  backdrop-filter: blur(28px) saturate(1.3);
+  -webkit-backdrop-filter: blur(28px) saturate(1.3);
   border: 1px solid var(--edge-lit);
-  border-radius: 22px;
+  border-radius: 24px;
   box-shadow:
-    0 28px 64px rgba(0, 0, 0, .58),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
+    0 30px 70px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(160, 142, 196, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.28s;
 }
-#shop[hidden] { display: none; }
+#shop.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
 
 #shop header {
   display: flex;
   align-items: center;
   gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 4px;
 }
-#shop h2 { margin: 0; font-size: 16px; font-weight: 600; flex: 1; }
+#shop h2 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  color: var(--ink);
+}
 #shop-purse {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--accent);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  background: rgba(255, 174, 66, 0.08);
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 174, 66, 0.15);
 }
 #shop-close {
-  width: 28px; height: 28px;
+  width: 32px; height: 32px;
   padding: 0;
-  font: inherit;
-  font-size: 14px;
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 700;
   color: var(--dim);
-  background: transparent;
+  background: rgba(255,255,255,0.03);
   border: 1px solid var(--edge);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
-#shop-close:hover { color: var(--ink); background: #332a44; }
+#shop-close:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--edge-lit);
+  transform: rotate(90deg);
+}
 
 #shop-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 6px;
+}
+#shop-list::-webkit-scrollbar {
+  width: 6px;
+}
+#shop-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 99px;
+}
+#shop-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+}
+#shop-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
-.shop-tier { display: flex; flex-direction: column; gap: 7px; }
+.shop-tier { display: flex; flex-direction: column; gap: 8px; }
 .shop-tier > h3 {
   margin: 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .04em;
+  font-family: var(--font-title);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--dim);
+  padding-left: 2px;
 }
-.shop-tier.locked { opacity: .5; }
+.shop-tier.locked { opacity: 0.45; }
 
 .shop-row {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, .03);
+  gap: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--edge);
   border-radius: var(--r-md);
-  transition: border-color .14s ease, background .14s ease;
+  transition: border-color .18s ease, background-color .18s ease, transform 0.18s ease;
 }
-.shop-row:hover { border-color: var(--edge-lit); background: rgba(255, 255, 255, .05); }
-.shop-row .ico { font-size: 21px; width: 26px; text-align: center; }
-.shop-row .txt { flex: 1; display: flex; flex-direction: column; line-height: 1.3; }
-.shop-row .nm { font-size: 13.5px; }
-.shop-row .note { font-size: 11px; color: var(--dim); }
+.shop-row:hover {
+  border-color: var(--edge-lit);
+  background-color: rgba(255, 255, 255, 0.04);
+  transform: translateY(-1px);
+}
+.shop-row .ico {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+.shop-row .txt { flex: 1; display: flex; flex-direction: column; gap: 2px; line-height: 1.35; }
+.shop-row .nm { font-size: 14px; font-weight: 700; color: var(--ink); }
+.shop-row .note { font-size: 11.5px; color: var(--dim); }
 .shop-row .price {
-  font-size: 12.5px;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 
 .shop-row button {
-  min-width: 62px;
-  padding: 6px 12px;
-  font: inherit;
+  min-width: 66px;
+  padding: 7px 14px;
+  font-family: var(--font-title);
+  font-weight: 700;
   font-size: 12px;
-  color: #241d10;
+  color: #1e1708;
   background: var(--accent);
   border: 0;
   border-radius: 9px;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255, 174, 66, 0.2);
+  transition: all 0.15s ease;
 }
-.shop-row button:hover:not(:disabled) { filter: brightness(1.08); }
-.shop-row button:disabled { cursor: not-allowed; opacity: .4; }
+.shop-row button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(255, 174, 66, 0.35);
+}
+.shop-row button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.shop-row button:disabled { cursor: not-allowed; opacity: 0.3; box-shadow: none; }
 .shop-row button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-.shop-row.owned { border-color: rgba(120, 210, 150, .4); }
-.shop-row.owned .have { font-size: 12px; color: #86d9a4; min-width: 62px; text-align: center; }
+.shop-row.owned {
+  border-color: rgba(120, 210, 150, 0.3);
+  background: rgba(120, 210, 150, 0.02);
+}
+.shop-row.owned .have {
+  font-size: 12px;
+  font-weight: 700;
+  color: #79d799;
+  min-width: 66px;
+  text-align: center;
+}
 
 #shop-note {
   margin: 0;
   font-size: 11px;
-  color: #7e7593;
+  color: #726b80;
   text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+}
+
+/* ---------- Chat chung ---------- */
+/* Cột chat kiểu live chat YouTube: flex item của #shell, KHÔNG position:fixed.
+   Là cột thật nên nó chiếm chỗ và #app tự co lại, không còn đè lên sân chơi.
+   flex: none + width cố định để canvas không đẩy nó hẹp đi. */
+#chat {
+  flex: none;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(24, 19, 34, 0.94);
+  border-left: 1px solid var(--edge-lit);
+  box-shadow: -18px 0 50px rgba(0, 0, 0, 0.5);
+}
+#chat[hidden] { display: none; }
+
+#chat header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+#chat h2 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Trạng thái kết nối: màu theo data-kind mà chat.js gắn vào */
+#chat-state {
+  flex: 1;
+  font-size: 11.5px;
+  color: var(--dim);
+  text-align: right;
+  font-weight: 600;
+}
+#chat-state[data-kind="ok"]   { color: #86d58e; }
+#chat-state[data-kind="wait"] { color: var(--accent); }
+#chat-state[data-kind="bad"]  { color: #f08a8a; }
+
+/* ---- Cổng vào: nhập mật khẩu phòng ---- */
+/* Căn giữa theo chiều dọc cho đỡ trống trải khi chưa mở khoá */
+#chat-gate {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+#chat-gate[hidden] { display: none; }
+
+.gate-note {
+  margin: 0 0 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+#gate-pass, #gate-name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+#gate-pass::placeholder, #gate-name::placeholder { color: #6d6678; }
+#gate-pass:focus, #gate-name:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.36);
+}
+#gate-go {
+  margin-top: 2px;
+  padding: 10px;
+  font-family: var(--font-title);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #2a1f0a;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+#gate-go:hover { filter: brightness(1.08); transform: translateY(-1px); }
+#gate-go:active { transform: none; }
+#gate-go:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Bật co-op: người chơi tự tick, không tự động vào. Mật khẩu đã lưu sẵn nên
+   nếu không có cờ riêng thì mọi lần vào lại sẽ bị đẩy vào co-op mà không hay. */
+#gate-coop {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--dim);
+  cursor: pointer;
+}
+#gate-coop:hover { color: var(--ink); }
+#gate-coop-on {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 1px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+#gate-coop-on:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#gate-err {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #f08a8a;
+  min-height: 1em;
+}
+
+/* ---- Thân chat: list giãn, composer dính đáy ---- */
+/* min-height: 0 là mấu chốt — thiếu nó thì flex item không co được dưới
+   kích thước nội dung, #chat-list sẽ đẩy composer tràn khỏi đáy cột. */
+#chat-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#chat-body[hidden] { display: none; }
+
+/* Khung tin: chiếm hết chỗ còn lại, tự cuộn */
+#chat-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 6px;
+}
+/* Tin dồn xuống đáy khi còn ít, giống mọi app chat */
+#chat-list::before {
+  content: '';
+  margin-top: auto;
+}
+#chat-list::-webkit-scrollbar { width: 6px; }
+#chat-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 99px;
+}
+#chat-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+}
+#chat-list::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
+
+/* Tin nhắn kiểu YouTube: không bubble, tên và nội dung chảy liền một dòng
+   rồi tự wrap. .chat-head là inline nên <p> nối ngay sau tên được. */
+.chat-msg {
+  display: block;
+  padding: 3px 2px;
+  border-radius: 6px;
+  animation: chat-in 0.2s ease-out;
+}
+.chat-msg:hover { background: rgba(255, 255, 255, 0.04); }
+@keyframes chat-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.chat-head {
+  display: inline;
+  margin-right: 6px;
+}
+.chat-who {
+  font-size: 12.5px;
+  font-weight: 800;
+  font-family: var(--font-title);
+  /* màu do chat.js đặt inline theo tên */
+}
+/* Giờ ẩn mặc định cho đỡ rối, hiện khi hover — YouTube cũng vậy */
+.chat-time {
+  font-size: 10.5px;
+  color: #6d6678;
+  font-variant-numeric: tabular-nums;
+  margin-left: 5px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.chat-msg:hover .chat-time { opacity: 1; }
+
+/* overflow-wrap: người ta dán một chuỗi dài 300 ký tự không dấu cách
+   thì phải bẻ dòng, không thì dock bị giãn ngang */
+.chat-text {
+  display: inline;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #ddd6e8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* flex: none — composer giữ nguyên cao, chỉ #chat-list co giãn */
+#chat-form {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* ---- Composer: textarea + nút Gửi thành một khối, dính đáy cột ---- */
+/* Viền nằm ở .chat-send-row chứ không ở textarea: nhìn như một hộp liền,
+   và focus-within cho viền sáng lên khi con trỏ vào textarea bên trong. */
+.chat-send-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px 6px 6px 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--edge);
+  border-radius: 22px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.chat-send-row:focus-within {
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+#chat-text {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: none;
+  border: none;
+  padding: 7px 8px 7px 12px;
+  min-height: 34px;
+  max-height: 110px;
+  resize: none;
+  outline: none;
+}
+#chat-text::placeholder { color: #6d6678; }
+
+/* Nút tròn, mũi tên thay chữ "Gửi" cho gọn */
+#chat-send {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 0;                    /* ẩn chữ, dùng ::before */
+  color: #2a1f0a;
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px var(--accent-glow);
+  transition: filter 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+#chat-send::before {
+  content: '↑';
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+#chat-send:hover:not(:disabled) { filter: brightness(1.1); transform: scale(1.06); }
+#chat-send:active:not(:disabled) { transform: scale(0.96); }
+#chat-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+#chat-send:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Đếm ký tự: nằm dưới composer, lệch phải, chỉ rõ khi gần chạm giới hạn */
+#chat-count {
+  align-self: flex-end;
+  padding-right: 4px;
+  font-size: 10px;
+  color: #5f596b;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+#chat-count.over { color: var(--accent); font-weight: 700; }
+
+/* ---------- Tablet & Mobile Layout Adjustment ---------- */
+@media (max-width: 768px) {
+  #bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .name {
+    flex: 1 1 100%;
+    align-items: center;
+    text-align: center;
+    min-width: unset;
+  }
+
+  #mood {
+    align-self: center;
+  }
+
+  .stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .stat {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .bar {
+    width: 90px;
+  }
+
+  /* Màn hẹp: xếp dọc, chat xuống dưới sân chơi. Cắt 340px khỏi bề ngang
+     768px thì canvas còn quá bé để chơi. */
+  #shell {
+    flex-direction: column;
+  }
+  #chat {
+    width: auto;
+    height: 60vh;
+    border-left: none;
+    border-top: 1px solid var(--edge-lit);
+    box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 480px) {
+  #app {
+    padding: 8px;
+    gap: 12px;
+  }
+
+  #bar {
+    padding: 10px;
+    border-radius: var(--r-md);
+  }
+
+  #cat-name {
+    font-size: 17px;
+  }
+
+  #clock, #purse {
+    padding: 6px 10px;
+    font-size: 12.5px;
+  }
+
+  #actions {
+    gap: 8px;
+  }
+
+  #actions button {
+    min-width: 68px;
+    padding: 8px 10px;
+    font-size: 18px;
+  }
+
+  #actions button span {
+    font-size: 10px;
+  }
+
+  #hint {
+    font-size: 11px;
+    border-radius: var(--r-md);
+    padding: 8px;
+  }
+
+  #shop {
+    border-radius: var(--r-lg);
+    padding: 16px;
+  }
+
+  #shop-list {
+    max-height: 320px;
+  }
 }

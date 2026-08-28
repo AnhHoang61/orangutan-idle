@@ -116,6 +116,7 @@ const Render = {
     for (const l of layers) l.fn();
 
     Items.drawLaser(ctx);
+    Net.drawPeerLaser(ctx);       // con trỏ người kia (xanh cyan), no-op khi chơi một mình
     FX.draw(ctx);
     this._light(ctx);
     Decor.drawGlow(ctx);          // đèn sao, bể cá: sáng xuyên qua lớp tối

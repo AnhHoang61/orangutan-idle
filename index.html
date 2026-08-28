@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<!-- #shell: hàng ngang gồm cột game (#app) và cột chat (#chat).
+     Chat là cột thật trong layout, không phải overlay đè lên. -->
+<div id="shell">
 <div id="app">
   <header id="bar">
     <div class="name">
@@ -80,7 +83,50 @@
   </p>
 </div>
 
+<aside id="chat" hidden aria-labelledby="chat-title">
+  <header>
+    <h2 id="chat-title">Chat riêng</h2>
+    <span id="chat-state" role="status" aria-live="polite">Chưa mở khoá</span>
+  </header>
+
+  <!-- Cổng vào: nhập mật khẩu phòng. Từ mật khẩu này suy ra tên topic MQTT
+       và khoá AES, nên hai máy phải nhập GIỐNG NHAU mới thấy nhau.
+       Không hardcode vào code: repo là public. -->
+  <form id="chat-gate" autocomplete="off">
+    <p class="gate-note">Nhập mật khẩu phòng. Hai máy phải giống nhau.</p>
+    <input id="gate-pass" type="password" maxlength="128"
+           placeholder="Mật khẩu phòng" aria-label="Mật khẩu phòng">
+    <input id="gate-name" type="text" maxlength="24"
+           placeholder="Tên của anh" aria-label="Tên hiển thị">
+    <label id="gate-coop">
+      <input type="checkbox" id="gate-coop-on">
+      <span>Chơi cùng nhau — hai máy chung một thế giới</span>
+    </label>
+    <button type="submit" id="gate-go">Vào phòng</button>
+    <span id="gate-err" role="alert"></span>
+  </form>
+
+  <div id="chat-body" hidden>
+    <div id="chat-list" role="log" aria-live="polite" aria-label="Tin nhắn"></div>
+
+    <form id="chat-form" autocomplete="off">
+      <div class="chat-send-row">
+        <textarea id="chat-text" rows="1" maxlength="300"
+                  placeholder="Nhập tin nhắn, Enter để gửi" aria-label="Nội dung tin nhắn"></textarea>
+        <button type="submit" id="chat-send">Gửi</button>
+      </div>
+      <span id="chat-count" aria-hidden="true">0/300</span>
+    </form>
+  </div>
+</aside>
+</div>
+
+<!-- MQTT qua WebSocket: chat nối trực tiếp tới broker công cộng, không cần
+     server riêng. Nhờ vậy chạy được trên GitHub Pages (chỉ host file tĩnh). -->
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+
 <script src="js/config.js"></script>
+<script src="js/room.js"></script>
 <script src="js/daynight.js"></script>
 <script src="js/weather.js"></script>
 <script src="js/fx.js"></script>
@@ -91,7 +137,9 @@
 <script src="js/cat.js"></script>
 <script src="js/render.js"></script>
 <script src="js/save.js"></script>
+<script src="js/net.js"></script>
 <script src="js/shop.js"></script>
+<script src="js/chat.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

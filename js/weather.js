@@ -9,6 +9,8 @@ const Weather = {
   FALLBACK: { lat: 21.03, lon: 105.85, place: 'Hà Nội' },
   REFRESH_MS: 10 * 60 * 1000,
 
+  RELOAD_DELAY_MS: 1400,      // để người chơi đọc kịp câu thông báo
+
   /* Trạng thái hiện tại; game đọc trực tiếp mấy field này */
   kind: 'clear',        // clear | cloudy | overcast | fog | drizzle | rain | shower | snow | storm
   temp: null,
@@ -24,6 +26,7 @@ const Weather = {
 
   _timer: 0,
   _coords: null,
+  _fetched: false,      // đã lấy được dữ liệu tươi trong phiên trang này chưa
 
   /* Mã WMO của Open-Meteo -> loại thời tiết trong game.
      https://open-meteo.com/en/docs (bảng weathercode) */
@@ -196,15 +199,40 @@ const Weather = {
         place: c.place,
         at: Date.now(),
       };
+      // Chỉ so với lần fetch trước TRONG phiên này. Lần fetch đầu sau khi
+      // tải trang không bao giờ reload, nên không có vòng lặp reload.
+      const changed = this._fetched && this.kind !== kind;
+      const prev = this.kind;
+
       this._apply(data);
       this._writeCache(data);
+      this._fetched = true;
       this.status = 'ok';
+      if (changed) this._reload(prev, kind);
       return data;
     } catch (e) {
       // mất mạng hoặc API lỗi: giữ nguyên cache, game vẫn chơi được
       this.status = this.temp === null ? 'error' : 'ok';
       return null;
     }
+  },
+
+  /* Trời đổi loại (nắng -> mưa...) thì tải lại trang để dựng lại cả bối cảnh
+     từ đầu. Lưu trước đã, không thì mất tiến trình từ lần autosave gần nhất. */
+  _reload(from, to) {
+    /* Đang chơi cùng nhau thì KHÔNG reload: một máy tự khởi động lại giữa
+       phiên là rớt phòng, mà nếu nó đang là chủ phòng thì người kia phải lên
+       thay. _apply() đã chạy trước đó nên hình ảnh vẫn đổi đúng; reload chỉ
+       để dựng lại particle, mà Sky.reset() làm được. */
+    if (typeof Net !== 'undefined' && Net.on) {
+      UI.say(`Trời chuyển ${this.LABEL[to] || to}`);
+      Sky.reset();
+      return;
+    }
+    // Save đã tự ghi ở beforeunload (main.js), reload không mất tiến trình.
+    // Khoảng vắng < 30s nên Save cũng không tính tụt chỉ số.
+    UI.say(`Trời chuyển ${this.LABEL[to] || to}, đang tải lại...`);
+    setTimeout(() => location.reload(), this.RELOAD_DELAY_MS);
   },
 
   _apply(d) {

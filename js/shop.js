@@ -14,6 +14,7 @@ const Shop = {
       btn: document.querySelector('[data-act="shop"]'),
     };
     if (!this.els.panel) return;
+    this.els.panel.removeAttribute('hidden');
 
     this.els.close.addEventListener('click', () => this.hide());
 
@@ -33,7 +34,7 @@ const Shop = {
   show() {
     if (!this.els.panel) return;
     this.open = true;
-    this.els.panel.hidden = false;
+    this.els.panel.classList.add('active');
     this.els.btn?.setAttribute('aria-expanded', 'true');
     this.render();
     this.els.close.focus();
@@ -42,21 +43,25 @@ const Shop = {
   hide() {
     if (!this.els.panel) return;
     this.open = false;
-    this.els.panel.hidden = true;
+    this.els.panel.classList.remove('active');
     this.els.btn?.setAttribute('aria-expanded', 'false');
   },
 
+  /* Trả true nếu mua được. Net cần biết để báo lại cho máy kia là "vừa mua"
+     hay "chưa đủ xu". Chỉ chủ phòng gọi hàm này nên không có chuyện hai người
+     cùng trừ một số xu. */
   buy(id) {
     const it = Decor.byId(id);
-    if (!it || Decor.has(id)) return;
+    if (!it || Decor.has(id)) return false;
+
 
     if (!Decor.tierUnlocked(it.tier)) {
       UI.say('Mua hết đồ hạng trước đã');
-      return;
+      return false;
     }
     if (!Economy.spend(it.price)) {
       UI.say(`Còn thiếu ${it.price - Economy.coins} xu nữa`);
-      return;
+      return false;
     }
 
     Decor.buy(id);
@@ -64,6 +69,7 @@ const Shop = {
     UI.say(`Đã kê ${it.name} vào phòng`);
     FX.spawn('spark', it.spot ? it.spot.x : 560, 420, 4);
     this.render();      // mua xong có thể mở tier mới
+    return true;
   },
 
   /* Dựng lại toàn bộ danh sách, nhóm theo tier */
@@ -106,12 +112,15 @@ const Shop = {
 
     this.els.list.innerHTML = html.join('');
     this._lastCoins = Economy.coins;
+    this._lastOwned = Decor.owned.size;
     if (this.els.purse) this.els.purse.textContent = Economy.coins;
   },
 
-  /* Gọi mỗi frame: chỉ dựng lại khi số xu thay đổi (nút Mua bật/tắt theo) */
+  /* Gọi mỗi frame: chỉ dựng lại khi số xu thay đổi (nút Mua bật/tắt theo).
+     Xét cả số đồ đã có: người kia mua thì phải hiện "đã có", mà xu của họ trừ
+     ở máy họ nên số xu bên này có thể không đổi. */
   refresh() {
     if (!this.open) return;
-    if (Economy.coins !== this._lastCoins) this.render();
+    if (Economy.coins !== this._lastCoins || Decor.owned.size !== this._lastOwned) this.render();
   },
 };

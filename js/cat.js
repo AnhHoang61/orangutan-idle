@@ -177,11 +177,14 @@ function makeAnimal(sp) {
     },
 
     /* ---------- Update ---------- */
-    update(dt) {
-      this._decay(dt);
-      this.stateTime += dt;
-      const k = dt / 16.67;
+    /* Nhấp nhô, nháy mắt, giật tai — thuần thẩm mỹ, không đổi gameplay.
+       Tách riêng để máy khách (co-op) gọi được: nó bỏ Pets.update() nên nếu
+       mấy dòng này nằm trong đó thì hai con đứng cứng, mắt mở trừng trừng.
 
+       Math.random() ở đây không sao: nó chỉ giật tai, hai máy lệch cũng
+       không ai thấy. purr có trong snapshot nhưng đếm cục bộ vẫn đúng —
+       snapshot chỉnh lại 5 lần/giây và nó chỉ ảnh hưởng câu mô tả tâm trạng. */
+    tickAnim(dt) {
       this.bob += dt * 0.004;
       if (this.purr > 0) this.purr -= dt;
 
@@ -191,7 +194,17 @@ function makeAnimal(sp) {
 
       if (this.earTwitch > 0) this.earTwitch -= dt;
       else if (Math.random() < 0.002) this.earTwitch = 240;
+    },
 
+    update(dt) {
+      this._decay(dt);
+      this.stateTime += dt;
+      const k = dt / 16.67;
+
+      this.tickAnim(dt);
+
+      // winded là timer gameplay (có trong snapshot), không phải thẩm mỹ:
+      // để ở đây chứ đừng đưa vào tickAnim, không thì máy khách đếm trùng
       if (this.winded > 0) this.winded -= dt;
 
       if (this.state === 'chase' && !Items.laser.on) this.setState('idle');
@@ -543,11 +556,15 @@ const Pets = {
     const [a, b] = this.list;
     if (!a || !b) return;
 
-    const busy = new Set(['greet', 'follow', 'chase', 'play', 'eat']);
+    // 'walk' cũng bỏ qua: hai con đi ngang nhau thì cứ để xuyên qua,
+    // đẩy ra lúc đang di chuyển làm đường đi giật và dễ kẹt vòng lặp
+    // (đi vào -> bị đẩy ra -> đi vào lại).
+    const busy = new Set(['greet', 'follow', 'chase', 'play', 'eat', 'walk']);
     if (busy.has(a.state) || busy.has(b.state)) return;
 
     const dx = b.x - a.x;
-    const min = 42;
+    // hạ từ 42 xuống 18: chỉ tách khi chồng gần hẳn, còn lại cho đứng sát nhau
+    const min = 18;
     const gap = Math.abs(dx);
     if (gap < min && Math.abs(a.y - b.y) < 30) {
       // gap có thể = 0 -> chọn hướng cố định để không chia cho 0
